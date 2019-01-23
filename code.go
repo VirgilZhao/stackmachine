@@ -9,6 +9,7 @@ const (
 	tokenTypeNil = iota
 	tokenTypeString
 	tokenTypeNumber
+	tokenTypeBoolean
 	tokenTypeKeyword
 	tokenEOF
 )
@@ -60,6 +61,9 @@ func (c *code) nextToken() (tokenType int, token string) {
 		return tokenTypeNumber, token
 	} else if isLetter(c.codeText[0]) {
 		token = c.scanIdentifier()
+		if strings.ToLower(token) == "true" || strings.ToLower(token) == "false" {
+			return tokenTypeBoolean, strings.ToLower(token)
+		}
 		return tokenTypeKeyword, token
 	}
 	panic("not valid token")
@@ -143,4 +147,33 @@ func isNumber(c byte) bool {
 
 func isLetter(c byte) bool {
 	return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'
+}
+
+func parseInstructions(c *code) []instruction {
+	insList := make([]instruction, 0)
+	pc := 0
+	for {
+		if pc >= len(c.tokens) {
+			return insList
+		}
+		t := c.tokens[pc]
+		switch t.tokenType {
+		case tokenTypeKeyword:
+			if ins, ok := keywords[t.value]; ok {
+				if ins.arity > 0 {
+					tokens := make([]token, 0)
+					arity := 0
+					for arity < ins.arity {
+						pc++
+						arity++
+						tk := c.tokens[pc]
+						tokens = append(tokens, tk)
+					}
+					ins.values = tokens
+				}
+				insList = append(insList, ins)
+				pc++
+			}
+		}
+	}
 }

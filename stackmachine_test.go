@@ -13,12 +13,13 @@ func TestCode(t *testing.T) {
 	newCode(string(data))
 }
 
-func TestVMExecute(t *testing.T) {
+func TestVMRun(t *testing.T) {
 	data, err := ioutil.ReadFile("/Users/yuzhao/Documents/test.s")
 	if err != nil {
 		panic(err)
 	}
 	c := newCode(string(data))
+	ins := parseInstructions(c)
 	vm := newVM()
-	vm.Execute(c)
+	vm.Run(ins)
 }
