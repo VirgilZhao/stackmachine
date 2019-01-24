@@ -1,9 +1,10 @@
 package stackmachine
 
 type VM struct {
-	pc              int
-	dataStack       stack
-	instructionList []instruction
+	pc        int
+	dataStack stack
+	code      *code
+	labelDict map[string]int
 }
 
 func newVM() *VM {
@@ -13,13 +14,13 @@ func newVM() *VM {
 	}
 }
 
-func (vm *VM) Run(instructions []instruction) {
-	vm.instructionList = instructions
+func (vm *VM) Run(c *code) {
+	vm.code = c
 	for {
-		if vm.pc >= len(vm.instructionList) {
+		if vm.pc >= len(vm.code.instructionList) {
 			break
 		}
-		ins := vm.instructionList[vm.pc]
+		ins := vm.code.instructionList[vm.pc]
 		ins.behavior(vm)
 	}
 }

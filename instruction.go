@@ -68,10 +68,19 @@ var keywords = map[string]instruction{
 		arity:    1,
 		behavior: jumpIfNotInstruction,
 	},
+	"hlt": instruction{
+		name:     "hlt",
+		arity:    0,
+		behavior: haltInstruction,
+	},
+}
+
+func haltInstruction(vm *VM) {
+
 }
 
 func pushInstruction(vm *VM) {
-	ins := vm.instructionList[vm.pc]
+	ins := vm.code.instructionList[vm.pc]
 	token := ins.values[0]
 	switch token.tokenType {
 	case tokenTypeNumber:
@@ -282,19 +291,19 @@ func boolCompare(a, b bool, cmp int) bool {
 }
 
 func jumpInstruction(vm *VM) {
-	ins := vm.instructionList[vm.pc]
+	ins := vm.code.instructionList[vm.pc]
 	tk := ins.values[0]
-	if jumpCount, err := strconv.ParseInt(tk.value, 10, 64); err == nil {
-		vm.pc += int(jumpCount) + 1
+	if topc, ok := vm.code.labelMap[tk.value]; ok {
+		vm.pc = topc
 	} else {
 		panic("not valid jump param")
 	}
 }
 
 func jumpIfNotInstruction(vm *VM) {
-	ins := vm.instructionList[vm.pc]
+	ins := vm.code.instructionList[vm.pc]
 	tk := ins.values[0]
-	if jumpCount, err := strconv.ParseInt(tk.value, 10, 64); err == nil {
+	if topc, ok := vm.code.labelMap[tk.value]; ok {
 		val := vm.dataStack.Pop()
 		jump := false
 		switch tval := val.(type) {
@@ -310,7 +319,7 @@ func jumpIfNotInstruction(vm *VM) {
 			panic("not valid jump condition")
 		}
 		if jump {
-			vm.pc += int(jumpCount) + 1
+			vm.pc = topc
 		} else {
 			vm.pc++
 		}
